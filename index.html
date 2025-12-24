@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Geschenkkarte</title>
+  <meta name="theme-color" content="#0b1220" />
+
+  <style>
+    :root{
+      --bg1:#070b14; --bg2:#0b1220; --card:#0f1a33; --text:#eaf0ff; --muted:#b9c6ff;
+      --accent:#7aa7ff; --accent2:#ffb86b; --good:#6cf0c2; --danger:#ff6b8a;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --radius: 22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1000px 600px at 15% 10%, rgba(122,167,255,.25), transparent 60%),
+        radial-gradient(900px 600px at 85% 20%, rgba(255,184,107,.18), transparent 55%),
+        radial-gradient(700px 600px at 50% 95%, rgba(108,240,194,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      display:flex; align-items:center; justify-content:center; padding:18px;
+    }
+    .wrap{width:min(720px, 100%); }
+    .card{
+      background: rgba(15,26,51,.72);
+      border: 1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      overflow:hidden;
+      position:relative;
+    }
+    header{ padding:22px 22px 8px 22px; }
+    .kicker{
+      color: var(--muted); font-size: 13px; letter-spacing:.08em; text-transform:uppercase;
+    }
+    h1{ margin:10px 0 6px 0; font-size: clamp(22px, 4vw, 32px); line-height:1.15; }
+    .sub{ margin:0; color: rgba(234,240,255,.82); font-size: 15px; line-height:1.5; }
+
+    .stage{ padding: 12px 22px 22px 22px; display:grid; gap:14px; }
+    .panel{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(6,10,20,.45);
+      padding: 16px;
+    }
+    .panel h2{
+      margin:0 0 8px 0; font-size: 16px; color: rgba(234,240,255,.92);
+      display:flex; align-items:center; gap:10px;
+    }
+    .badge{
+      font-size:12px; padding:4px 10px; border-radius:999px;
+      border: 1px solid rgba(255,255,255,.14);
+      color: rgba(234,240,255,.85);
+      background: rgba(255,255,255,.06);
+    }
+    .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; }
+
+    .btn{
+      appearance:none; border:0; cursor:pointer;
+      padding: 12px 14px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(122,167,255,.95), rgba(108,240,194,.85));
+      color:#061022; font-weight:700; letter-spacing:.02em;
+      box-shadow: 0 10px 30px rgba(122,167,255,.18);
+      transition: transform .12s ease, filter .12s ease;
+      width: 100%;
+    }
+    .btn:hover{transform: translateY(-1px); filter: brightness(1.02);}
+    .btn:active{transform: translateY(0px); filter: brightness(.98);}
+    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none; filter:none;}
+    .btn.secondary{
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow:none;
+    }
+    .btn.small{width:auto; padding:10px 12px; font-weight:700}
+
+    .big{
+      font-size: clamp(22px, 5vw, 40px);
+      font-weight: 900;
+      letter-spacing:.01em;
+      margin: 6px 0 0 0;
+    }
+
+    .hintList{ display:grid; gap:10px; margin: 10px 0 0 0; padding:0; list-style:none; }
+    .hintList li{
+      padding: 12px 12px; border-radius: 14px;
+      border: 1px dashed rgba(255,255,255,.18);
+      background: rgba(255,255,255,.05);
+      color: rgba(234,240,255,.90);
+      display:flex; gap:10px; align-items:flex-start;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: rgba(255,184,107,.95); margin-top:6px;
+      box-shadow: 0 0 0 6px rgba(255,184,107,.10);
+      flex: 0 0 auto;
+    }
+
+    .destination{ display:grid; gap:10px; }
+    .tile{
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(500px 220px at 20% 10%, rgba(255,184,107,.22), transparent 60%),
+        radial-gradient(500px 240px at 90% 30%, rgba(122,167,255,.22), transparent 60%),
+        rgba(255,255,255,.04);
+      position:relative;
+      overflow:hidden;
+    }
+    .videoBox{ display:grid; gap:10px; }
+    a.link{
+      color: var(--text);
+      text-decoration:none;
+      border-bottom: 1px solid rgba(255,255,255,.28);
+    }
+
+    footer{ padding: 0 22px 20px 22px; color: rgba(234,240,255,.65); font-size: 12px; }
+
+    /* ===== WICHTIG: Reveal-Regel (damit alles korrekt verborgen bleibt) ===== */
+    .reveal { display: none; animation: fadeUp .35s ease both; }
+    .reveal.show { display: block; }
+    @keyframes fadeUp{
+      from{opacity:0; transform: translateY(8px);}
+      to{opacity:1; transform: translateY(0);}
+    }
+
+    /* Confetti */
+    .confetti{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+    .confetti i{
+      position:absolute; width:10px; height:16px; opacity:.9;
+      transform: translateY(-20px);
+      animation: fall 1.6s ease-in forwards;
+      border-radius:3px;
+    }
+    @keyframes fall{
+      to{ transform: translateY(120vh) rotate(540deg); opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card" id="card">
+      <div class="confetti" id="confetti"></div>
+
+      <header>
+        <div class="kicker">Für dich</div>
+        <h1>Ich habe eine kleine Überraschung vorbereitet.</h1>
+        <p class="sub">Tippe dich Schritt für Schritt durch – erst ein Datum, dann Hinweise, dann der große Reveal.</p>
+      </header>
+
+      <div class="stage">
+
+        <!-- 1) Datum -->
+        <section class="panel">
+          <div class="row">
+            <h2>Schritt 1 <span class="badge">Datum</span></h2>
+          </div>
+
+          <button class="btn" id="btnDate">Datum enthüllen</button>
+
+          <div class="reveal" id="revealDate">
+            <p class="big" id="dateText">12.–16. Februar 2026</p>
+            <p class="sub">Bitte freihalten. Details folgen gleich.</p>
+            <div class="row">
+              <button class="btn secondary small" id="toHints" disabled>Weiter</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2) Hinweise -->
+        <section class="panel">
+          <div class="row">
+            <h2>Schritt 2 <span class="badge">Hinweise</span></h2>
+          </div>
+
+          <button class="btn" id="btnHints" disabled>Hinweise anzeigen</button>
+
+          <div class="reveal" id="revealHints">
+            <ul class="hintList">
+              <li><span class="dot"></span><span><strong>Mehr Sonne</strong> als wir gerade draußen haben.</span></li>
+              <li><span class="dot"></span><span><strong>Meer-Feeling</strong> und eine lange Promenade.</span></li>
+              <li><span class="dot"></span><span><strong>Tapas</strong>, frischer Fisch, gute Cafés.</span></li>
+              <li><span class="dot"></span><span><strong>Andalusien</strong> – warm, lebendig, entspannt.</span></li>
+            </ul>
+
+            <div class="row">
+              <button class="btn secondary small" id="toDestination" disabled>Weiter</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3) Ziel -->
+        <section class="panel">
+          <div class="row">
+            <h2>Schritt 3 <span class="badge">Reiseziel</span></h2>
+          </div>
+
+          <button class="btn" id="btnDestination" disabled>Reiseziel enthüllen</button>
+
+          <div class="reveal destination" id="revealDestination">
+            <div class="tile">
+              <p class="sub" style="margin:0 0 6px 0;">Wir machen einen Trip nach</p>
+              <p class="big" style="margin:0;">MÁLAGA</p>
+              <p class="sub" style="margin-top:10px;">
+                Vom <strong>12. bis 16. Februar</strong> schenke ich dir Zeit zu zweit – Sonne, Essen, Meer und Stadt.
+              </p>
+            </div>
+
+            <div class="row">
+              <button class="btn secondary small" id="toVideo" disabled>Weiter</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4) Video -->
+        <section class="panel">
+          <div class="row">
+            <h2>Schritt 4 <span class="badge">Vorgeschmack</span></h2>
+          </div>
+
+          <button class="btn" id="btnVideo" disabled>YouTube-Vorgeschmack öffnen</button>
+
+          <div class="reveal videoBox" id="revealVideo">
+            <p class="sub" style="margin:0;">
+              Für ein bisschen Urlaubsgefühl vorab:
+              <a class="link" href="https://youtu.be/y-NjowS8eQQ?si=DIR8GYFqxonvrwIi" target="_blank" rel="noopener">
+                Video über Málaga ansehen
+              </a>
+            </p>
+
+            <button class="btn secondary" id="btnFinalNote">Letzte Nachricht anzeigen</button>
+
+            <div class="reveal" id="revealFinalNote">
+              <div class="tile" style="background: rgba(255,255,255,.05);">
+                <p class="sub" style="margin:0;">Ich freue mich auf unseren Trip. Ich liebe dich.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <footer>
+        Tipp: Wenn du Text anpassen willst, öffne die Datei <code>index.html</code> und ändere die Sätze.
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ===== Konfiguration =====
+    const TRIP_YEAR = 2026; // ggf. ändern
+    const YT_URL = 'https://youtu.be/y-NjowS8eQQ?si=DIR8GYFqxonvrwIi';
+
+    // ===== Helpers =====
+    const show = (id) => document.getElementById(id)?.classList.add('show');
+    const hide = (id) => document.getElementById(id)?.classList.remove('show');
+    const enable = (id) => { const el = document.getElementById(id); if (el) el.disabled = false; };
+    const disable = (id) => { const el = document.getElementById(id); if (el) el.disabled = true; };
+
+    // ===== Confetti (optional) =====
+    function confettiBurst() {
+      const c = document.getElementById('confetti');
+      if (!c) return;
+      c.innerHTML = '';
+      const pieces = 40;
+      for (let i = 0; i < pieces; i++) {
+        const p = document.createElement('i');
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.15;
+        const dur = 1.2 + Math.random() * 0.8;
+        const sizeW = 6 + Math.random() * 10;
+        const sizeH = 10 + Math.random() * 16;
+        p.style.left = left + 'vw';
+        p.style.top = (-10 - Math.random() * 30) + 'px';
+        p.style.width = sizeW + 'px';
+        p.style.height = sizeH + 'px';
+        p.style.animationDelay = delay + 's';
+        p.style.animationDuration = dur + 's';
+        const palette = [
+          'rgba(122,167,255,.95)',
+          'rgba(255,184,107,.95)',
+          'rgba(108,240,194,.95)',
+          'rgba(255,107,138,.9)'
+        ];
+        p.style.background = palette[Math.floor(Math.random() * palette.length)];
+        c.appendChild(p);
+      }
+      setTimeout(() => { c.innerHTML = ''; }, 2200);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Datum setzen
+      const dateTextEl = document.getElementById('dateText');
+      if (dateTextEl) dateTextEl.textContent = `12.–16. Februar ${TRIP_YEAR}`;
+
+      // ===== Startzustand hart erzwingen =====
+      hide('revealDate');
+      hide('revealHints');
+      hide('revealDestination');
+      hide('revealVideo');
+      hide('revealFinalNote');
+
+      // Buttons: nur Schritt 1 aktiv
+      disable('btnHints');
+      disable('btnDestination');
+      disable('btnVideo');
+
+      disable('toHints');
+      disable('toDestination');
+      disable('toVideo');
+
+      // ===== Schritt 1: Datum =====
+      document.getElementById('btnDate')?.addEventListener('click', () => {
+        show('revealDate');
+        enable('toHints');
+        enable('btnHints');
+        disable('btnDate');
+      });
+
+      document.getElementById('toHints')?.addEventListener('click', () => {
+        document.getElementById('btnHints')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      // ===== Schritt 2: Hinweise =====
+      document.getElementById('btnHints')?.addEventListener('click', () => {
+        show('revealHints');
+        enable('toDestination');
+        enable('btnDestination');
+        disable('btnHints');
+      });
+
+      document.getElementById('toDestination')?.addEventListener('click', () => {
+        document.getElementById('btnDestination')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      // ===== Schritt 3: Reiseziel (bleibt verborgen bis Klick) =====
+      document.getElementById('btnDestination')?.addEventListener('click', () => {
+        show('revealDestination');
+        enable('toVideo');
+        enable('btnVideo');
+        disable('btnDestination');
+        confettiBurst();
+      });
+
+      document.getElementById('toVideo')?.addEventListener('click', () => {
+        document.getElementById('btnVideo')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      // ===== Schritt 4: Video =====
+      document.getElementById('btnVideo')?.addEventListener('click', () => {
+        show('revealVideo');
+        // Optional: direkt öffnen (kann je nach Browser-Popup-Policy blockiert werden)
+        window.open(YT_URL, '_blank', 'noopener');
+        disable('btnVideo');
+      });
+
+      document.getElementById('btnFinalNote')?.addEventListener('click', () => {
+        show('revealFinalNote');
+        disable('btnFinalNote');
+      });
+    });
+  </script>
+</body>
+</html>
